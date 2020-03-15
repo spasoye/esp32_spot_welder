@@ -1,26 +1,26 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <freertos/queue.h>
+#include <freertos/semphr.h>
 #include <driver/gpio.h>
 
 #define GPIO_OUTPUT_0   18
 #define GPIO_INPUT_0    16
 
-static QueueHandle_t input_queue = NULL;
+static SemaphoreHandle_t input_semph = NULL;
 
 static void IRAM_ATTR gpio_isr_handler(void* arg)
 {
-    uint32_t gpio_num = (uint32_t) arg;
-    xQueueSendFromISR(input_queue, &gpio_num, NULL);
+    // static uint32_t last_time_intr = x
+
+    xSemaphoreGiveFromISR(input_semph, NULL);
 }
 
 static void gpio_task_example(void* arg)
 {
-    uint32_t io_num;
     for(;;) {
-        if(xQueueReceive(input_queue, &io_num, portMAX_DELAY)) {
-            printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+        if(xSemaphoreTake(input_semph, portMAX_DELAY)) {
+            printf("Button pressed\n");
             gpio_intr_disable(GPIO_INPUT_0);
             gpio_set_level(GPIO_OUTPUT_0, 1u);
             vTaskDelay(300/portTICK_PERIOD_MS);
@@ -47,7 +47,7 @@ void app_main(void)
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     gpio_config(&io_conf);
 
-    input_queue = xQueueCreate(10, sizeof(uint32_t));
+    input_semph = xSemaphoreCreateBinary();
     xTaskCreate(gpio_task_example, "gpio_task_example", 2048, NULL, 10, NULL);
 
     gpio_install_isr_service(0);
