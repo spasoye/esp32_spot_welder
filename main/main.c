@@ -25,6 +25,7 @@ static void gpio_task_example(void* arg)
             gpio_set_level(GPIO_OUTPUT_0, 1u);
             vTaskDelay(300/portTICK_PERIOD_MS);
             gpio_set_level(GPIO_OUTPUT_0, 0u);
+            vTaskDelay(500/portTICK_PERIOD_MS);
             gpio_intr_enable(GPIO_INPUT_0);
         }
     }
