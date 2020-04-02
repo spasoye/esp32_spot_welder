@@ -56,6 +56,7 @@ void app_main(void)
     gpio_isr_handler_add(GPIO_INPUT_0, gpio_isr_handler, (void*)GPIO_INPUT_0);
     
     lcd_init();
+    lcd_set_dur(300);
 
     while (1) {
         vTaskDelay(portMAX_DELAY);
