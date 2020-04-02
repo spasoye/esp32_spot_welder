@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 #include <freertos/semphr.h>
 #include <driver/gpio.h>
+#include "lcd.h"
 
 #define GPIO_OUTPUT_0   18
 #define GPIO_INPUT_0    16
@@ -54,6 +55,8 @@ void app_main(void)
     gpio_install_isr_service(0);
     gpio_isr_handler_add(GPIO_INPUT_0, gpio_isr_handler, (void*)GPIO_INPUT_0);
     
+    lcd_init();
+
     while (1) {
         vTaskDelay(portMAX_DELAY);
     }
