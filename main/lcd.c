@@ -56,8 +56,8 @@ uint8_t lcd_set_dur(uint16_t dur_val)
 {
     uint8_t ret = 1;
 
-    char buff[7];
-    snprintf(buff, 7, "%6d", dur_val);
+    char buff[6];
+    snprintf(buff, 6, "%5d", dur_val);
 
     ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 0, 1)) ? 0:1; 
     
