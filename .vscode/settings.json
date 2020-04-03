@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "task.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "lcd.h": "c",
+        "queue.h": "c"
     }
 }
