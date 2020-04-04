@@ -18,21 +18,21 @@ uint8_t rotary_encoder_init(void)
 {
     gpio_config_t io_conf;
 
-    io_conf.intr_type = GPIO_PIN_INTR_ANYEDGE;
+    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1<<ENC_CLK);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
     gpio_config(&io_conf);
 
-    io_conf.intr_type = GPIO_PIN_INTR_ANYEDGE;
+    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
     io_conf.pin_bit_mask = (1<<ENC_DT);
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     gpio_config(&io_conf);
 
-    io_conf.intr_type = GPIO_PIN_INTR_ANYEDGE;
+    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
     io_conf.pin_bit_mask = (1<<ENC_SW);
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
@@ -44,7 +44,7 @@ uint8_t rotary_encoder_init(void)
     gpio_isr_handler_add(ENC_DT, encoder_isr_handler, (void*)ENC_DT);
     gpio_isr_handler_add(ENC_SW, encoder_isr_handler, (void*)ENC_SW);
 
-    p_encoder_queue = xQueueCreate(10, sizeof(uint8_t));
+    p_encoder_queue = xQueueCreate(1, sizeof(uint8_t));
 
     xTaskCreate(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 9, NULL);
 
