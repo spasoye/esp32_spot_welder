@@ -20,4 +20,13 @@ uint8_t lcd_init(void);
  */
 uint8_t lcd_set_dur(uint16_t dur_val);
 
+/**
+ * @brief  Place curcor to user defined position.
+ * @note   None.
+ * @param  *p_pos: Position where we want to put the cursor to. 
+ * @retval 0 -> ok
+ *         1 -> not ok 
+ */
+uint8_t lcd_user_pointer(uint8_t *p_pos);
+
 #endif

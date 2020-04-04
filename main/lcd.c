@@ -3,6 +3,7 @@
 #include <driver/gpio.h>
 #include <driver/i2c.h>
 #include <esp_log.h>
+#include <string.h>
 
 #define TAG                     "lcd"
 #define I2C_MASTER_NUM           I2C_NUM_0
@@ -15,6 +16,7 @@
 
 static void i2c_master_init(void);
 static i2c_lcd1602_info_t *p_lcd_info;
+static uint8_t p_user_pos[2] = {0,0};
 
 uint8_t lcd_init(void)
 {
@@ -45,6 +47,7 @@ uint8_t lcd_init(void)
     // Active duration label print
     if (!ret)
     {
+        i2c_lcd1602_set_cursor(p_lcd_info, true);
         i2c_lcd1602_move_cursor(p_lcd_info, 0, 0);
         i2c_lcd1602_write_string(p_lcd_info, "Duration:");
     }
@@ -58,15 +61,26 @@ uint8_t lcd_set_dur(uint16_t dur_val)
 
     char buff[6];
     snprintf(buff, 6, "%5d", dur_val);
-
+    
     ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 0, 1)) ? 0:1; 
     
     if(!ret)
     {
         ret = (ESP_OK == i2c_lcd1602_write_string(p_lcd_info, buff)) ? 0:1;
+        lcd_user_pointer(p_user_pos);
     }
 
     return ret;
+}
+
+uint8_t lcd_user_pointer(uint8_t *p_pos)
+{
+    memcpy(p_user_pos, p_pos, 2);
+    
+    // printf("Row: %d\nColumn: %d\n", p_pos[1], p_pos[0]);
+    // printf("User Row: %d\nColumn: %d\n", p_user_pos[1], p_user_pos[0]);
+
+    return i2c_lcd1602_move_cursor(p_lcd_info, p_pos[0], p_pos[1]);
 }
 
 static void i2c_master_init(void)
