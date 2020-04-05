@@ -11,7 +11,7 @@
 #define ENC_SW      27
 
 static QueueHandle_t p_encoder_queue = NULL;
-static int16_t value = 100;
+static int16_t duration = 100;
 
 /**
  * @brief  Rotary encoder interrupt service routine. 
@@ -32,6 +32,7 @@ static void rotary_encoder_task(void *arg);
 uint8_t rotary_encoder_init(void)
 {
     gpio_config_t io_conf;
+    uint8_t ret = 1;
 
     io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
     io_conf.mode = GPIO_MODE_INPUT;
@@ -61,9 +62,9 @@ uint8_t rotary_encoder_init(void)
 
     p_encoder_queue = xQueueCreate(1, sizeof(uint32_t));
 
-    xTaskCreatePinnedToCore(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 10, NULL, 0);
+    ret = (pdPASS ==xTaskCreatePinnedToCore(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 10, NULL, 0)) ? 0 : 1;
 
-    return 0;
+    return ret;
 }
 
 static void rotary_encoder_task(void *arg)
@@ -72,7 +73,7 @@ static void rotary_encoder_task(void *arg)
     uint8_t digit_pos = 0;
     uint8_t cursor_pos[] = {4, 1};
 
-    lcd_set_dur(value);
+    lcd_set_dur(duration);
     lcd_user_pointer(cursor_pos);
 
     while(true)
@@ -91,12 +92,12 @@ static void rotary_encoder_task(void *arg)
 
             case ENC_DT:
                 printf("-\n");
-                value = value - pow(10, digit_pos);
+                duration = duration - pow(10, digit_pos);
                 break;
 
             case ENC_CLK:
                 printf("+\n");
-                value = value + pow(10, digit_pos);
+                duration = duration + pow(10, digit_pos);
                 break;
 
             default:
@@ -104,18 +105,18 @@ static void rotary_encoder_task(void *arg)
             }
             
             // Value can't be smaller than 0;
-            if (value < 0)
+            if (duration < 0)
             {
-                value = 0;
+                duration = 0;
             }
 
             // Value can't be larger than 5000 ms.
-            if (value > 5000)
+            if (duration > 5000)
             {
-                value = 5000;
+                duration = 5000;
             }
 
-            lcd_set_dur(value);
+            lcd_set_dur(duration);
             vTaskDelay(50/portTICK_PERIOD_MS);
             gpio_intr_enable(ENC_CLK);
             gpio_intr_enable(ENC_DT);
@@ -125,13 +126,15 @@ static void rotary_encoder_task(void *arg)
 
 uint16_t rotary_encoder_get_duration(void)
 {
-    return value;
+    return duration;
 }
 
 static void IRAM_ATTR encoder_isr_handler(void *arg)
 {
     uint32_t val = (uint32_t) arg;
     
+    // TODO: Fix debounce issue.
+
     if (val == ENC_CLK)
     {
         gpio_intr_disable(ENC_DT);
