@@ -68,7 +68,7 @@ uint8_t rotary_encoder_init(void)
 static void rotary_encoder_task(void *arg)
 {
     uint32_t encod_val;
-    uint16_t value = 100;
+    int16_t value = 100;
     uint8_t digit_pos = 0;
     uint8_t cursor_pos[] = {4, 1};
 
@@ -103,6 +103,12 @@ static void rotary_encoder_task(void *arg)
                 break;
             }
             
+            // Value can't be smaller than 0;
+            if (value < 0)
+            {
+                value = 0;
+            }
+
             // Value can't be larger than 5000 ms.
             if (value > 5000)
             {
@@ -110,7 +116,7 @@ static void rotary_encoder_task(void *arg)
             }
 
             lcd_set_dur(value);
-            vTaskDelay(100/portTICK_PERIOD_MS);
+            vTaskDelay(50/portTICK_PERIOD_MS);
             gpio_intr_enable(ENC_CLK);
             gpio_intr_enable(ENC_DT);
         }
@@ -121,7 +127,14 @@ static void IRAM_ATTR encoder_isr_handler(void *arg)
 {
     uint32_t val = (uint32_t) arg;
     
-    gpio_intr_disable(ENC_CLK);
-    gpio_intr_disable(ENC_DT);
+    if (val == ENC_CLK)
+    {
+        gpio_intr_disable(ENC_DT);
+    }
+    else
+    {
+        gpio_intr_disable(ENC_CLK);
+    }
+    
     xQueueSendFromISR(p_encoder_queue, &val, NULL);
 }

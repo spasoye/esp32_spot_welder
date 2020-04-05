@@ -3,6 +3,11 @@
         "task.h": "c",
         "gpio.h": "c",
         "lcd.h": "c",
-        "queue.h": "c"
+        "queue.h": "c",
+        "bit": "c",
+        "*.tcc": "c",
+        "cmath": "c",
+        "complex": "c",
+        "random": "c"
     }
 }
