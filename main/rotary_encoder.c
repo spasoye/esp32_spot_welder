@@ -12,7 +12,20 @@
 
 static QueueHandle_t p_encoder_queue = NULL;
 
+/**
+ * @brief  Rotary encoder interrupt service routine. 
+ * @note   Debounce protocol should be done here.
+ * @param  *arg: pin that triggered the interrupt.
+ * @retval None
+ */
 static void IRAM_ATTR encoder_isr_handler(void *arg);
+
+/**
+ * @brief  Task routine that haqndles interrupt events.
+ * @note   None.
+ * @param  *arg: task arguments. None in this case.
+ * @retval None
+ */
 static void rotary_encoder_task(void *arg);
 
 uint8_t rotary_encoder_init(void)
