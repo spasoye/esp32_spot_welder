@@ -70,7 +70,7 @@ static void rotary_encoder_task(void *arg)
             switch (encod_val)
             {
             case ENC_SW:
-                digit_pos = (digit_pos+1)%5;
+                digit_pos = (digit_pos+1)%4;
                 cursor_pos[0] = 4-digit_pos;
                 printf("Digit: %d\n", digit_pos);
                 lcd_user_pointer(cursor_pos);
@@ -90,8 +90,14 @@ static void rotary_encoder_task(void *arg)
                 break;
             }
             
+            // Value can't be larger than 5000 ms.
+            if (value > 5000)
+            {
+                value = 5000;
+            }
+
             lcd_set_dur(value);
-            vTaskDelay(50/portTICK_PERIOD_MS);
+            vTaskDelay(100/portTICK_PERIOD_MS);
             gpio_intr_enable(ENC_CLK);
             gpio_intr_enable(ENC_DT);
         }
