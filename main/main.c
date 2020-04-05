@@ -21,12 +21,17 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
 
 static void gpio_task_example(void* arg)
 {
+    uint16_t duration;
+
     for(;;) {
         if(xSemaphoreTake(input_semph, portMAX_DELAY)) {
             printf("Button pressed\n");
             gpio_intr_disable(GPIO_INPUT_0);
             gpio_set_level(GPIO_OUTPUT_0, 1u);
-            vTaskDelay(300/portTICK_PERIOD_MS);
+
+            duration = rotary_encoder_get_duration();
+
+            vTaskDelay(duration/portTICK_PERIOD_MS);
             gpio_set_level(GPIO_OUTPUT_0, 0u);
             vTaskDelay(500/portTICK_PERIOD_MS);
             gpio_intr_enable(GPIO_INPUT_0);

@@ -5,4 +5,6 @@
 
 uint8_t rotary_encoder_init(void);
 
+uint16_t rotary_encoder_get_duration(void);
+
 #endif

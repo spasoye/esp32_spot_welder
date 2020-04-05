@@ -11,6 +11,7 @@
 #define ENC_SW      27
 
 static QueueHandle_t p_encoder_queue = NULL;
+static int16_t value = 100;
 
 /**
  * @brief  Rotary encoder interrupt service routine. 
@@ -68,7 +69,6 @@ uint8_t rotary_encoder_init(void)
 static void rotary_encoder_task(void *arg)
 {
     uint32_t encod_val;
-    int16_t value = 100;
     uint8_t digit_pos = 0;
     uint8_t cursor_pos[] = {4, 1};
 
@@ -121,6 +121,11 @@ static void rotary_encoder_task(void *arg)
             gpio_intr_enable(ENC_DT);
         }
     }
+}
+
+uint16_t rotary_encoder_get_duration(void)
+{
+    return value;
 }
 
 static void IRAM_ATTR encoder_isr_handler(void *arg)
