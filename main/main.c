@@ -14,8 +14,7 @@ static SemaphoreHandle_t input_semph = NULL;
 
 static void IRAM_ATTR gpio_isr_handler(void* arg)
 {
-    // static uint32_t last_time_intr = x
-
+    // Signal the GPIO task.
     xSemaphoreGiveFromISR(input_semph, NULL);
 }
 
@@ -27,13 +26,17 @@ static void gpio_task_example(void* arg)
         if(xSemaphoreTake(input_semph, portMAX_DELAY)) {
             printf("Button pressed\n");
             gpio_intr_disable(GPIO_INPUT_0);
+            
+            rotary_encoder_int_disable();
             gpio_set_level(GPIO_OUTPUT_0, 1u);
 
             duration = rotary_encoder_get_duration();
-
+            
             vTaskDelay(duration/portTICK_PERIOD_MS);
             gpio_set_level(GPIO_OUTPUT_0, 0u);
             vTaskDelay(500/portTICK_PERIOD_MS);
+
+            rotary_encoder_int_enable();
             gpio_intr_enable(GPIO_INPUT_0);
         }
     }

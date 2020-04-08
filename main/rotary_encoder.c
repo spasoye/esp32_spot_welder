@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "rotary_encoder.h"
 
 #include "lcd.h"
 
@@ -65,6 +66,20 @@ uint8_t rotary_encoder_init(void)
     ret = (pdPASS ==xTaskCreatePinnedToCore(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 10, NULL, 0)) ? 0 : 1;
 
     return ret;
+}
+
+void rotary_encoder_int_disable(void)
+{
+    gpio_intr_disable(ENC_CLK);
+    gpio_intr_disable(ENC_DT);
+    gpio_intr_disable(ENC_SW);
+}
+
+void rotary_encoder_int_enable(void)
+{
+    gpio_intr_enable(ENC_CLK);
+    gpio_intr_enable(ENC_DT);
+    gpio_intr_enable(ENC_SW);
 }
 
 static void rotary_encoder_task(void *arg)
