@@ -35,7 +35,7 @@ uint8_t rotary_encoder_init(void)
     gpio_config_t io_conf;
     uint8_t ret = 1;
 
-    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
+    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<ENC_CLK);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -61,7 +61,7 @@ uint8_t rotary_encoder_init(void)
     gpio_isr_handler_add(ENC_DT, encoder_isr_handler, (void*)ENC_DT);
     gpio_isr_handler_add(ENC_SW, encoder_isr_handler, (void*)ENC_SW);
 
-    p_encoder_queue = xQueueCreate(1, sizeof(uint32_t));
+    p_encoder_queue = xQueueCreate(1, sizeof(encoder_event_t));
 
     ret = (pdPASS ==xTaskCreatePinnedToCore(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 10, NULL, 0)) ? 0 : 1;
 
@@ -84,7 +84,7 @@ void rotary_encoder_int_enable(void)
 
 static void rotary_encoder_task(void *arg)
 {
-    uint32_t encod_val;
+    encoder_event_t encod_val;
     uint8_t digit_pos = 0;
     uint8_t cursor_pos[] = {4, 1};
 
@@ -98,19 +98,19 @@ static void rotary_encoder_task(void *arg)
             printf("Interrupt from %d\n", encod_val);
             switch (encod_val)
             {
-            case ENC_SW:
+            case CLICK:
                 digit_pos = (digit_pos+1)%4;
                 cursor_pos[0] = 4-digit_pos;
                 printf("Digit: %d\n", digit_pos);
                 lcd_user_pointer(cursor_pos);
                 break;
 
-            case ENC_DT:
+            case CCW:
                 printf("-\n");
                 duration = duration - pow(10, digit_pos);
                 break;
 
-            case ENC_CLK:
+            case CW:
                 printf("+\n");
                 duration = duration + pow(10, digit_pos);
                 break;
@@ -132,9 +132,9 @@ static void rotary_encoder_task(void *arg)
             }
 
             lcd_set_dur(duration);
-            vTaskDelay(50/portTICK_PERIOD_MS);
-            gpio_intr_enable(ENC_CLK);
+            vTaskDelay(60/portTICK_PERIOD_MS);
             gpio_intr_enable(ENC_DT);
+            gpio_intr_enable(ENC_SW);
         }
     }
 }
@@ -146,17 +146,28 @@ uint16_t rotary_encoder_get_duration(void)
 
 static void IRAM_ATTR encoder_isr_handler(void *arg)
 {
-    uint32_t val = (uint32_t) arg;
+    encoder_event_t val;
     
     // TODO: Fix debounce issue.
 
-    if (val == ENC_CLK)
+    // Disable interrupts until the handling is done.
+    gpio_intr_disable(ENC_DT);
+    gpio_intr_disable(ENC_SW);
+
+    uint8_t a = gpio_get_level(ENC_CLK);
+    uint8_t b = gpio_get_level(ENC_DT);
+    
+    if ((int32_t*)arg == ENC_SW)
     {
-        gpio_intr_disable(ENC_DT);
+        val = CLICK;
+    }
+    else if (a == b)
+    {
+        val = CCW;
     }
     else
     {
-        gpio_intr_disable(ENC_CLK);
+        val = CW;
     }
     
     xQueueSendFromISR(p_encoder_queue, &val, NULL);

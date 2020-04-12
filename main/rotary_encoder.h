@@ -3,6 +3,13 @@
 #ifndef ROT_ENC_H
 #define ROT_ENC_H
 
+typedef enum _event_t
+{
+    CW,
+    CCW,
+    CLICK
+} encoder_event_t;
+
 /**
  * @brief  Inititalize rotary encoder GPIOS, handler task
  *         interrupt queue. Used for setting the ON state
