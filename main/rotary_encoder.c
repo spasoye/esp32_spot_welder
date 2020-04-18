@@ -14,6 +14,10 @@
 static QueueHandle_t p_encoder_queue = NULL;
 static int16_t duration = 100;
 
+static uint8_t warning1 = 150;
+static uint8_t warning2 = 500;
+static uint8_t warning3 = 1000;
+
 /**
  * @brief  Rotary encoder interrupt service routine. 
  * @note   Debounce protocol should be done here.
@@ -131,10 +135,28 @@ static void rotary_encoder_task(void *arg)
                 duration = 5000;
             }
 
+            // Signal the user if the duration is to long.
+            if (0 <= duration && warning1 > duration){
+                lcd_set_warning(0);
+            }
+            else if (warning1 < duration && warning2 > duration)
+            {
+                lcd_set_warning(1);
+            }
+            else if ((warning2 < duration && 1000 > duration))
+            {
+                lcd_set_warning(2);
+            }
+            else
+            {
+                lcd_set_warning(3);
+            }
+
             lcd_set_dur(duration);
-            vTaskDelay(60/portTICK_PERIOD_MS);
+            vTaskDelay(50/portTICK_PERIOD_MS);
             gpio_intr_enable(ENC_DT);
             gpio_intr_enable(ENC_SW);
+            gpio_intr_enable(ENC_CLK);
         }
     }
 }
@@ -153,6 +175,7 @@ static void IRAM_ATTR encoder_isr_handler(void *arg)
     // Disable interrupts until the handling is done.
     gpio_intr_disable(ENC_DT);
     gpio_intr_disable(ENC_SW);
+    gpio_intr_disable(ENC_CLK);
 
     uint8_t a = gpio_get_level(ENC_CLK);
     uint8_t b = gpio_get_level(ENC_DT);

@@ -8,6 +8,7 @@
         "*.tcc": "c",
         "cmath": "c",
         "complex": "c",
-        "random": "c"
+        "random": "c",
+        "stdio.h": "c"
     }
 }
