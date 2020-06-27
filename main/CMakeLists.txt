@@ -5,4 +5,7 @@ set(COMPONENT_PRIV_REQUIRES )
 set(COMPONENT_SRCS "main.c")
 set(COMPONENT_ADD_INCLUDEDIRS ".")
 
-register_component()
+idf_component_register(SRCS main.c lcd.c rotary_encoder.c
+                    INCLUDE_DIRS "."
+                    REQUIRES esp32-i2c-lcd1602 esp32-smbus)
+
