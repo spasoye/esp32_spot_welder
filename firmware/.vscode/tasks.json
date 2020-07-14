@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "openocd",
+        "type": "shell",
+        "isBackground": true,
+        "options": {
+          "cwd": "/home/ivan/.espressif/tools/openocd-esp32"
+        },
+        "command": "sudo /home/ivan/.espressif/tools/openocd-esp32/v0.10.0-esp32-20200420/openocd-esp32/bin/openocd -s share/openocd/scripts -f interface/jlink.cfg -f board/esp-wroom-32.cfg",
+      }
+    ]
+  }
