@@ -226,10 +226,10 @@ F 3 "https://a3.sofastcdn.com/attachment/7jioKBjnRiiSrjrjknRiwS77gwbf3zmp/L90-SE
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector:Conn_01x04_Female J1
+L Connector:Conn_01x04_Female J2
 U 1 1 5E93ACE9
 P 7900 2800
-F 0 "J1" H 7928 2776 50  0000 L CNN
+F 0 "J2" H 7928 2776 50  0000 L CNN
 F 1 "LCD_PINS" H 7928 2685 50  0000 L CNN
 F 2 "Connector_PinHeader_1.00mm:PinHeader_1x04_P1.00mm_Vertical" H 7900 2800 50  0001 C CNN
 F 3 "~" H 7900 2800 50  0001 C CNN
@@ -241,10 +241,10 @@ LCD_SCL
 Text GLabel 7700 2900 0    50   Input ~ 0
 LCD_SDA
 $Comp
-L Connector:Conn_01x05_Female J2
+L Connector:Conn_01x05_Female J3
 U 1 1 5E9ED026
 P 7900 4050
-F 0 "J2" H 7928 4076 50  0000 L CNN
+F 0 "J3" H 7928 4076 50  0000 L CNN
 F 1 "ROT_ENCD" H 7928 3985 50  0000 L CNN
 F 2 "Connector_PinHeader_1.00mm:PinHeader_1x05_P1.00mm_Vertical" H 7900 4050 50  0001 C CNN
 F 3 "~" H 7900 4050 50  0001 C CNN
@@ -377,12 +377,11 @@ Wire Wire Line
 	7550 2800 7700 2800
 Wire Wire Line
 	7150 2650 7550 2650
-NoConn ~ 5250 2900
 $Comp
-L power:GND #PWR?
+L power:GND #PWR0108
 U 1 1 5E93623C
 P 7700 4700
-F 0 "#PWR?" H 7700 4450 50  0001 C CNN
+F 0 "#PWR0108" H 7700 4450 50  0001 C CNN
 F 1 "GND" H 7705 4527 50  0000 C CNN
 F 2 "" H 7700 4700 50  0001 C CNN
 F 3 "" H 7700 4700 50  0001 C CNN
@@ -390,10 +389,10 @@ F 3 "" H 7700 4700 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Connector:Conn_01x02_Female J3
+L Connector:Conn_01x02_Female J4
 U 1 1 5E93570D
 P 7900 4800
-F 0 "J3" H 7928 4776 50  0000 L CNN
+F 0 "J4" H 7928 4776 50  0000 L CNN
 F 1 "SWITCH" H 7928 4685 50  0000 L CNN
 F 2 "Connector_PinHeader_1.00mm:PinHeader_1x02_P1.00mm_Vertical" H 7900 4800 50  0001 C CNN
 F 3 "~" H 7900 4800 50  0001 C CNN
@@ -406,4 +405,17 @@ Text GLabel 5250 4000 2    50   Input ~ 0
 SW
 Wire Wire Line
 	7700 4700 7700 4800
+$Comp
+L power:GND #PWR?
+U 1 1 5E95360E
+P 5250 2600
+F 0 "#PWR?" H 5250 2350 50  0001 C CNN
+F 1 "GND" H 5255 2427 50  0000 C CNN
+F 2 "" H 5250 2600 50  0001 C CNN
+F 3 "" H 5250 2600 50  0001 C CNN
+	1    5250 2600
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5250 2600 5250 2900
 $EndSCHEMATC
