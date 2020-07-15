@@ -136,14 +136,15 @@ static void rotary_encoder_task(void *arg)
             }
 
             // Signal the user if the duration is to long.
-            if (0 <= duration && warning1 > duration){
+            if (0 <= duration && warning1 >= duration)
+            {
                 lcd_set_warning(0);
             }
-            else if (warning1 < duration && warning2 > duration)
+            else if (warning1 < duration && warning2 >= duration)
             {
                 lcd_set_warning(1);
             }
-            else if ((warning2 < duration && 1000 > duration))
+            else if ((warning2 < duration && 1000 >= duration))
             {
                 lcd_set_warning(2);
             }
