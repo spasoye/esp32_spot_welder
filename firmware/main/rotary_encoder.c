@@ -63,7 +63,7 @@ uint8_t rotary_encoder_init(void)
     gpio_install_isr_service(0);
     gpio_isr_handler_add(ENC_CLK, encoder_isr_handler, (void*)ENC_CLK);
     gpio_isr_handler_add(ENC_DT, encoder_isr_handler, (void*)ENC_DT);
-    gpio_isr_handler_add(ENC_SW, encoder_isr_handler, (void*)ENC_SW);
+    gpio_isr_handler_add(ENC_SW, click_isr_handler, (void*)ENC_SW);
 
     p_encoder_queue = xQueueCreate(1, sizeof(encoder_event_t));
 
@@ -194,4 +194,18 @@ static void IRAM_ATTR encoder_isr_handler(void *arg)
     }
     
     xQueueSendFromISR(p_encoder_queue, &val, NULL);
+}
+static void IRAM_ATTR click_isr_handler(void *arg)
+{
+    static uint32_t last_ms = 0;
+    uint32_t cur_ms = xTaskGetTickCountFromISR();
+    encoder_event_t val = CLICK;
+
+    // TODO: 200 to const
+    if (200 < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
+    {
+        xQueueSendFromISR(p_encoder_queue, &val, NULL);
+    }
+
+    last_ms = cur_ms;
 }
