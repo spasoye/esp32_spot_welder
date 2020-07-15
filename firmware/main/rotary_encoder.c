@@ -9,7 +9,7 @@
 
 #define ENC_CLK     GPIO_NUM_32
 #define ENC_DT      GPIO_NUM_33
-#define ENC_SW      27
+#define ENC_SW      GPIO_NUM_27
 
 static QueueHandle_t p_encoder_queue = NULL;
 static int16_t duration = 100;
@@ -26,6 +26,8 @@ static uint8_t warning3 = 1000;
  */
 static void IRAM_ATTR encoder_isr_handler(void *arg);
 
+static void IRAM_ATTR click_isr_handler(void *arg);
+
 /**
  * @brief  Task routine that haqndles interrupt events.
  * @note   None.
@@ -39,14 +41,14 @@ uint8_t rotary_encoder_init(void)
     gpio_config_t io_conf;
     uint8_t ret = 1;
 
-    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
+    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<ENC_CLK);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
     gpio_config(&io_conf);
 
-    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
+    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
     io_conf.pin_bit_mask = (1ULL<<ENC_DT);
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
@@ -76,14 +78,12 @@ void rotary_encoder_int_disable(void)
 {
     gpio_intr_disable(ENC_CLK);
     gpio_intr_disable(ENC_DT);
-    gpio_intr_disable(ENC_SW);
 }
 
 void rotary_encoder_int_enable(void)
 {
     gpio_intr_enable(ENC_CLK);
     gpio_intr_enable(ENC_DT);
-    gpio_intr_enable(ENC_SW);
 }
 
 static void rotary_encoder_task(void *arg)
@@ -154,10 +154,6 @@ static void rotary_encoder_task(void *arg)
             }
 
             lcd_set_dur(duration);
-            vTaskDelay(50/portTICK_PERIOD_MS);
-            gpio_intr_enable(ENC_DT);
-            gpio_intr_enable(ENC_SW);
-            gpio_intr_enable(ENC_CLK);
         }
     }
 }
@@ -169,33 +165,35 @@ uint16_t rotary_encoder_get_duration(void)
 
 static void IRAM_ATTR encoder_isr_handler(void *arg)
 {
+    static uint32_t last_ms = 0;
+    uint32_t cur_ms = xTaskGetTickCountFromISR();
     encoder_event_t val;
     
-    // TODO: Fix debounce issue.
-
     // Disable interrupts until the handling is done.
-    gpio_intr_disable(ENC_DT);
-    gpio_intr_disable(ENC_SW);
-    gpio_intr_disable(ENC_CLK);
+    // rotary_encoder_int_disable();
 
-    uint8_t a = gpio_get_level(ENC_CLK);
-    uint8_t b = gpio_get_level(ENC_DT);
-    
-    if ((int32_t*)arg == ENC_SW)
+    // TODO: Fix debounce issue.
+    // TODO: 20 to const
+    if (10 < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
     {
-        val = CLICK;
+        uint8_t a = gpio_get_level(ENC_CLK);
+        uint8_t b = gpio_get_level(ENC_DT);
+        
+        if (a == b)
+        {
+            val = CCW;
+        }
+        else
+        {
+            val = CW;
+        }
+        
+        xQueueSendFromISR(p_encoder_queue, &val, NULL);
     }
-    else if (a == b)
-    {
-        val = CCW;
-    }
-    else
-    {
-        val = CW;
-    }
-    
-    xQueueSendFromISR(p_encoder_queue, &val, NULL);
+
+    last_ms = cur_ms;
 }
+
 static void IRAM_ATTR click_isr_handler(void *arg)
 {
     static uint32_t last_ms = 0;
