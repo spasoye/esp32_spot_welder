@@ -27,7 +27,6 @@ static void gpio_task_example(void* arg)
             printf("Button pressed\n");
             gpio_intr_disable(GPIO_INPUT_0);
             
-            rotary_encoder_int_disable();
             gpio_set_level(GPIO_OUTPUT_0, 1u);
 
             duration = rotary_encoder_get_duration();
@@ -36,7 +35,6 @@ static void gpio_task_example(void* arg)
             gpio_set_level(GPIO_OUTPUT_0, 0u);
             vTaskDelay(500/portTICK_PERIOD_MS);
 
-            rotary_encoder_int_enable();
             gpio_intr_enable(GPIO_INPUT_0);
         }
     }
@@ -45,12 +43,6 @@ static void gpio_task_example(void* arg)
 void app_main(void)
 {
     gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pin_bit_mask = (1<<GPIO_OUTPUT_0);
-    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-    io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
-    gpio_config(&io_conf);
 
     io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
     io_conf.pin_bit_mask = 1<<GPIO_INPUT_0;
