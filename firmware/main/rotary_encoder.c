@@ -13,6 +13,8 @@
 
 static QueueHandle_t p_encoder_queue = NULL;
 static int16_t duration = 100;
+static uint16_t click_debounce = 200;
+static uint16_t rot_debounce = 10;
 
 static uint8_t warning1 = 150;
 static uint8_t warning2 = 500;
@@ -41,7 +43,8 @@ uint8_t rotary_encoder_init(void)
     gpio_config_t io_conf;
     uint8_t ret = 1;
 
-    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
+    // Getting better results when level triggering
+    io_conf.intr_type = GPIO_PIN_INTR_LOLEVEL;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<ENC_CLK);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -63,13 +66,13 @@ uint8_t rotary_encoder_init(void)
     gpio_config(&io_conf);
 
     gpio_install_isr_service(0);
+
     gpio_isr_handler_add(ENC_CLK, encoder_isr_handler, (void*)ENC_CLK);
-    gpio_isr_handler_add(ENC_DT, encoder_isr_handler, (void*)ENC_DT);
     gpio_isr_handler_add(ENC_SW, click_isr_handler, (void*)ENC_SW);
 
     p_encoder_queue = xQueueCreate(1, sizeof(encoder_event_t));
 
-    ret = (pdPASS ==xTaskCreatePinnedToCore(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 10, NULL, 0)) ? 0 : 1;
+    ret = (pdPASS ==xTaskCreate(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 10, NULL)) ? 0 : 1;
 
     return ret;
 }
@@ -77,13 +80,11 @@ uint8_t rotary_encoder_init(void)
 void rotary_encoder_int_disable(void)
 {
     gpio_intr_disable(ENC_CLK);
-    gpio_intr_disable(ENC_DT);
 }
 
 void rotary_encoder_int_enable(void)
 {
     gpio_intr_enable(ENC_CLK);
-    gpio_intr_enable(ENC_DT);
 }
 
 static void rotary_encoder_task(void *arg)
@@ -99,6 +100,8 @@ static void rotary_encoder_task(void *arg)
     {
         if (xQueueReceive(p_encoder_queue, &encod_val, portMAX_DELAY))
         {
+            rotary_encoder_int_enable();
+
             printf("Interrupt from %d\n", encod_val);
             switch (encod_val)
             {
@@ -168,13 +171,8 @@ static void IRAM_ATTR encoder_isr_handler(void *arg)
     static uint32_t last_ms = 0;
     uint32_t cur_ms = xTaskGetTickCountFromISR();
     encoder_event_t val;
-    
-    // Disable interrupts until the handling is done.
-    // rotary_encoder_int_disable();
 
-    // TODO: Fix debounce issue.
-    // TODO: 20 to const
-    if (10 < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
+    if (rot_debounce < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
     {
         uint8_t a = gpio_get_level(ENC_CLK);
         uint8_t b = gpio_get_level(ENC_DT);
@@ -187,6 +185,9 @@ static void IRAM_ATTR encoder_isr_handler(void *arg)
         {
             val = CW;
         }
+
+        // Disable interrupts until the handling is done.
+        gpio_intr_disable(ENC_CLK);
         
         xQueueSendFromISR(p_encoder_queue, &val, NULL);
     }
@@ -200,8 +201,7 @@ static void IRAM_ATTR click_isr_handler(void *arg)
     uint32_t cur_ms = xTaskGetTickCountFromISR();
     encoder_event_t val = CLICK;
 
-    // TODO: 200 to const
-    if (200 < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
+    if (click_debounce < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
     {
         xQueueSendFromISR(p_encoder_queue, &val, NULL);
     }
