@@ -27,18 +27,5 @@ uint8_t rotary_encoder_init(void);
  */
 uint16_t rotary_encoder_get_duration(void);
 
-/**
- * @brief  Disable all rotary encoder interrupts.
- * @note   
- * @retval None
- */
-void rotary_encoder_int_disable(void);
-
-/**
- * @brief  Enable all rotary encoder interrupts.
- * @note   
- * @retval None
- */
-void rotary_encoder_int_enable(void);
 
 #endif

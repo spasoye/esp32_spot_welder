@@ -77,16 +77,6 @@ uint8_t rotary_encoder_init(void)
     return ret;
 }
 
-void rotary_encoder_int_disable(void)
-{
-    gpio_intr_disable(ENC_CLK);
-}
-
-void rotary_encoder_int_enable(void)
-{
-    gpio_intr_enable(ENC_CLK);
-}
-
 static void rotary_encoder_task(void *arg)
 {
     encoder_event_t encod_val;
@@ -100,7 +90,7 @@ static void rotary_encoder_task(void *arg)
     {
         if (xQueueReceive(p_encoder_queue, &encod_val, portMAX_DELAY))
         {
-            rotary_encoder_int_enable();
+            gpio_intr_enable(ENC_CLK);
 
             printf("Interrupt from %d\n", encod_val);
             switch (encod_val)
