@@ -7,12 +7,13 @@ typedef enum _event_t
 {
     CW,
     CCW,
-    CLICK
+    SHORT,
+    LONG
 } encoder_event_t;
 
 /**
- * @brief  Inititalize rotary encoder GPIOS, handler task
- *         interrupt queue. Used for setting the ON state
+ * @brief  Inititalize rotary encoder GPIOS, handler task,
+ *         interrupt handlers. Used for setting the ON state
  *         the relay.
  * @note   
  * @retval 0 -> ok

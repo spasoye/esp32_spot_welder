@@ -13,7 +13,8 @@
 
 static QueueHandle_t p_encoder_queue = NULL;
 static int16_t duration = 100;
-static uint16_t click_debounce = 200;
+static uint16_t click_debounce = 70;
+static uint16_t long_period = 600;
 static uint16_t rot_debounce = 30;
 
 static uint8_t warning1 = 150;
@@ -28,6 +29,12 @@ static uint8_t warning3 = 1000;
  */
 static void IRAM_ATTR encoder_isr_handler(void *arg);
 
+/**
+ * @brief  Button interrupt service routine.
+ * @note   
+ * @param  *arg: 
+ * @retval 
+ */
 static void IRAM_ATTR click_isr_handler(void *arg);
 
 /**
@@ -36,7 +43,7 @@ static void IRAM_ATTR click_isr_handler(void *arg);
  * @param  *arg: task arguments. None in this case.
  * @retval None
  */
-static void rotary_encoder_task(void *arg);
+static void interface_task(void *arg);
 
 uint8_t interface_init(void)
 {
@@ -58,7 +65,7 @@ uint8_t interface_init(void)
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     gpio_config(&io_conf);
 
-    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
+    io_conf.intr_type = GPIO_PIN_INTR_ANYEDGE;
     io_conf.pin_bit_mask = (1<<ENC_SW);
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
@@ -72,12 +79,12 @@ uint8_t interface_init(void)
 
     p_encoder_queue = xQueueCreate(1, sizeof(encoder_event_t));
 
-    ret = (pdPASS ==xTaskCreate(rotary_encoder_task, "rotary_encoder_task", 2048, NULL, 10, NULL)) ? 0 : 1;
+    ret = (pdPASS ==xTaskCreate(interface_task, "rotary_encoder_task", 2048, NULL, 10, NULL)) ? 0 : 1;
 
     return ret;
 }
 
-static void rotary_encoder_task(void *arg)
+static void interface_task(void *arg)
 {
     encoder_event_t encod_val;
     uint8_t digit_pos = 0;
@@ -95,7 +102,11 @@ static void rotary_encoder_task(void *arg)
 
             switch (encod_val)
             {
-            case CLICK:
+            case LONG:
+                printf("Long\n");
+                break;
+            case SHORT:
+                printf("Short\n");
                 digit_pos = (digit_pos+1)%4;
                 cursor_pos[0] = 4-digit_pos;
                 printf("Digit: %d\n", digit_pos);
@@ -187,13 +198,36 @@ static void IRAM_ATTR encoder_isr_handler(void *arg)
 
 static void IRAM_ATTR click_isr_handler(void *arg)
 {
-    static uint32_t last_ms = 0;
+    uint32_t gpio_num = (uint32_t) arg;
     uint32_t cur_ms = xTaskGetTickCountFromISR();
-    encoder_event_t val = CLICK;
+    encoder_event_t val;
+    static uint32_t last_ms = 0;
+    static uint32_t last_up = 0;
+    static uint32_t last_down = 0;
 
+    // Debounce handling
     if (click_debounce < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
     {
-        xQueueSendFromISR(p_encoder_queue, &val, NULL);
+        if (gpio_get_level(gpio_num))
+        {
+            if ( (long_period/portTICK_PERIOD_MS) < (cur_ms - last_down) )
+            {
+                // Longpress
+                val = LONG;
+            }
+            else
+            {
+                // Shortpress
+                val = SHORT;
+            }
+
+            xQueueSendFromISR(p_encoder_queue, &val, NULL);
+            last_up = cur_ms;
+        }
+        else
+        {
+            last_down = cur_ms;
+        }
     }
 
     last_ms = cur_ms;
