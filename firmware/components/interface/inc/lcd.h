@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#ifndef BLE_IF_H
-#define BLE_IF_H
+#ifndef LCD_H
+#define LCD_H
 
 /**
  * @brief Initialize LCD
