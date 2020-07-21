@@ -12,13 +12,31 @@
 uint8_t lcd_init(void);
 
 /**
- * @brief  Updates duration value.
+ * @brief  Updates pulse on time value.
  * @note   None
  * @param  dur_val: Value that we want to update to.
  * @retval 0 -> ok
  *         1 -> not ok
  */
-uint8_t lcd_set_dur(uint16_t dur_val);
+uint8_t lcd_set_on(uint16_t dur_val);
+
+/**
+ * @brief  Updates pulse off time value.
+ * @note   None
+ * @param  dur_val: Value that we want to update to.
+ * @retval 0 -> ok
+ *         1 -> not ok
+ */
+uint8_t lcd_set_off(uint16_t dur_val);
+
+/**
+ * @brief  Updates number of pulses value.
+ * @note   
+ * @param  num_val: Value that we want to update to.
+ * @retval 0 -> ok
+ *         1 -> not ok
+ */
+uint8_t lcd_set_num(uint8_t num_val);
 
 /**
  * @brief  Place cursor to user defined position.

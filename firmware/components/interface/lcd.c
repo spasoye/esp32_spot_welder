@@ -55,14 +55,50 @@ uint8_t lcd_init(void)
     return ret;
 }
 
-uint8_t lcd_set_dur(uint16_t dur_val)
+uint8_t lcd_set_on(uint16_t dur_val)
 {
     uint8_t ret = 1;
 
-    char buff[6];
-    snprintf(buff, 6, "%5d", dur_val);
+    char buff[4];
+    snprintf(buff, 4, "%3d", dur_val);
     
-    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 0, 1)) ? 0:1; 
+    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 1, 1)) ? 0:1; 
+    
+    if(!ret)
+    {
+        ret = (ESP_OK == i2c_lcd1602_write_string(p_lcd_info, buff)) ? 0:1;
+        lcd_user_pointer(p_user_pos);
+    }
+
+    return ret;
+}
+
+uint8_t lcd_set_off(uint16_t dur_val)
+{
+    uint8_t ret = 1;
+
+    char buff[4];
+    snprintf(buff, 4, "%3d", dur_val);
+    
+    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 6, 1)) ? 0:1; 
+    
+    if(!ret)
+    {
+        ret = (ESP_OK == i2c_lcd1602_write_string(p_lcd_info, buff)) ? 0:1;
+        lcd_user_pointer(p_user_pos);
+    }
+
+    return ret;
+}
+
+uint8_t lcd_set_num(uint8_t num_val)
+{
+    uint8_t ret = 1;
+
+    char buff[3];
+    snprintf(buff, 3, "%2d", num_val);
+    
+    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 11, 1)) ? 0:1; 
     
     if(!ret)
     {
@@ -76,10 +112,6 @@ uint8_t lcd_set_dur(uint16_t dur_val)
 uint8_t lcd_user_pointer(uint8_t *p_pos)
 {
     memcpy(p_user_pos, p_pos, 2);
-    
-    // printf("Row: %d\nColumn: %d\n", p_pos[1], p_pos[0]);
-    // printf("User Row: %d\nColumn: %d\n", p_user_pos[1], p_user_pos[0]);
-
     return i2c_lcd1602_move_cursor(p_lcd_info, p_pos[0], p_pos[1]);
 }
 
