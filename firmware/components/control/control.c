@@ -4,7 +4,7 @@
 #include <freertos/semphr.h>
 #include <driver/gpio.h>
 #include "lcd.h"
-#include "rotary_encoder.h"
+#include "interface.h"
 
 #define MOT_CTRL_GPIO   18
 #define SWITCH_GPIO     16
@@ -29,7 +29,7 @@ static void control_task(void* arg)
             
             gpio_set_level(MOT_CTRL_GPIO, 1u);
 
-            duration = rotary_encoder_get_duration();
+            duration = interface_get_duration();
             
             vTaskDelay(duration/portTICK_PERIOD_MS);
             gpio_set_level(MOT_CTRL_GPIO, 0u);

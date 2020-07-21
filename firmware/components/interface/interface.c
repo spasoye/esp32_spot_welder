@@ -3,7 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "rotary_encoder.h"
+#include "interface.h"
 
 #include "lcd.h"
 
@@ -38,7 +38,7 @@ static void IRAM_ATTR click_isr_handler(void *arg);
  */
 static void rotary_encoder_task(void *arg);
 
-uint8_t rotary_encoder_init(void)
+uint8_t interface_init(void)
 {
     gpio_config_t io_conf;
     uint8_t ret = 1;
@@ -154,7 +154,7 @@ static void rotary_encoder_task(void *arg)
     }
 }
 
-uint16_t rotary_encoder_get_duration(void)
+uint16_t interface_get_duration(void)
 {
     return duration;
 }

@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#ifndef ROT_ENC_H
-#define ROT_ENC_H
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
 typedef enum _event_t
 {
@@ -18,14 +18,14 @@ typedef enum _event_t
  * @retval 0 -> ok
  *         1 -> not ok
  */
-uint8_t rotary_encoder_init(void);
+uint8_t interface_init(void);
 
 /**
  * @brief  Return duration value.
  * @note   
  * @retval Duration value.
  */
-uint16_t rotary_encoder_get_duration(void);
+uint16_t interface_get_duration(void);
 
 
 #endif
