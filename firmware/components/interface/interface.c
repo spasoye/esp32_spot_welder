@@ -13,13 +13,14 @@
 
 static QueueHandle_t p_encoder_queue = NULL;
 static int16_t duration = 100;
-static uint16_t click_debounce = 70;
-static uint16_t long_period = 600;
-static uint16_t rot_debounce = 30;
+static const uint16_t click_debounce = 70;
+static const uint16_t long_period = 600;
+static const uint16_t rot_debounce = 30;
 
-static uint8_t warning1 = 150;
-static uint8_t warning2 = 500;
-static uint8_t warning3 = 1000;
+static uint16_t on_time = 50;
+static uint16_t off_time = 80;
+static uint8_t pulse_num = 4;
+extern interface_property curr_prop = ON_PROP;
 
 /**
  * @brief  Rotary encoder interrupt service routine. 
@@ -88,10 +89,13 @@ static void interface_task(void *arg)
 {
     encoder_event_t encod_val;
     uint8_t digit_pos = 0;
-    uint8_t cursor_pos[] = {4, 1};
+    uint8_t cursor_pos[] = {3, 1};
 
-    lcd_set_dur(duration);
-    lcd_user_pointer(cursor_pos);
+    lcd_set_on(on_time);
+    lcd_set_off(off_time);
+    lcd_set_num(pulse_num);
+
+    lcd_user_pointer(cursor_pos, curr_prop);
 
     while(true)
     {
@@ -104,23 +108,57 @@ static void interface_task(void *arg)
             {
             case LONG:
                 printf("Long\n");
-                break;
+                curr_prop = (curr_prop + 1) % 3;
+                digit_pos = 0;
+
             case SHORT:
                 printf("Short\n");
-                digit_pos = (digit_pos+1)%4;
-                cursor_pos[0] = 4-digit_pos;
+                digit_pos = (digit_pos+1)%3;
+                cursor_pos[0] = digit_pos;
                 printf("Digit: %d\n", digit_pos);
-                lcd_user_pointer(cursor_pos);
+                lcd_user_pointer(cursor_pos, curr_prop);
                 break;
 
             case CCW:
                 printf("-\n");
-                duration = duration - pow(10, digit_pos);
+                switch (curr_prop)
+                {
+                    case ON_PROP:
+                        on_time = on_time - pow(10, digit_pos);
+                        break;
+                    
+                    case OFF_PROP:
+                        off_time = off_time - pow(10, digit_pos);
+                        break;
+
+                    case NUM_PROP:
+                        pulse_num = pulse_num - pow(10, digit_pos);
+                        break;
+
+                    default:
+                        break;
+                }
                 break;
 
             case CW:
                 printf("+\n");
-                duration = duration + pow(10, digit_pos);
+                switch (curr_prop)
+                {
+                    case ON_PROP:
+                        on_time = on_time + pow(10, digit_pos);
+                        break;
+                    
+                    case OFF_PROP:
+                        off_time = off_time + pow(10, digit_pos);
+                        break;
+
+                    case NUM_PROP:
+                        pulse_num = pulse_num + pow(10, digit_pos);
+                        break;
+
+                    default:
+                        break;
+                }
                 break;
 
             default:
@@ -134,30 +172,14 @@ static void interface_task(void *arg)
             }
 
             // Value can't be larger than 5000 ms.
-            if (duration > 5000)
+            if (duration > 500)
             {
-                duration = 5000;
+                duration = 500;
             }
 
-            // Signal the user if the duration is to long.
-            if (0 <= duration && warning1 >= duration)
-            {
-                lcd_set_warning(0);
-            }
-            else if (warning1 < duration && warning2 >= duration)
-            {
-                lcd_set_warning(1);
-            }
-            else if ((warning2 < duration && 1000 >= duration))
-            {
-                lcd_set_warning(2);
-            }
-            else
-            {
-                lcd_set_warning(3);
-            }
-
-            lcd_set_dur(duration);
+            // lcd_set_on(on_time);
+            // lcd_set_off(off_time);
+            // lcd_set_num(pulse_num);
 
             vTaskDelay(50/portTICK_PERIOD_MS);
             gpio_intr_enable(ENC_CLK);

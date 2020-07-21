@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <interface.h>
 
 #ifndef LCD_H
 #define LCD_H
@@ -45,7 +46,7 @@ uint8_t lcd_set_num(uint8_t num_val);
  * @retval 0 -> ok
  *         1 -> not ok 
  */
-uint8_t lcd_user_pointer(uint8_t *p_pos);
+uint8_t lcd_user_pointer(uint8_t *p_pos, interface_property prop);
 
 /**
  * @brief  Prints ! in top right corner.

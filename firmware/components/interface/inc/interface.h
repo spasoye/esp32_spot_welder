@@ -11,6 +11,15 @@ typedef enum _event_t
     LONG
 } encoder_event_t;
 
+typedef enum _interface_property
+{
+    ON_PROP,
+    OFF_PROP,
+    NUM_PROP
+}interface_property;
+
+interface_property curr_prop;
+
 /**
  * @brief  Inititalize rotary encoder GPIOS, handler task,
  *         interrupt handlers. Used for setting the ON state

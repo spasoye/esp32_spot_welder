@@ -12,7 +12,6 @@
 void app_main(void)
 {
     lcd_init();
-    lcd_set_dur(300);
 
     interface_init();
     control_init();

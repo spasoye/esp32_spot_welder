@@ -18,6 +18,8 @@ static void i2c_master_init(void);
 static i2c_lcd1602_info_t *p_lcd_info;
 static uint8_t p_user_pos[2] = {0,0};
 
+extern interface_property curr_prop;
+
 uint8_t lcd_init(void)
 {
     uint8_t ret = 1;
@@ -49,7 +51,11 @@ uint8_t lcd_init(void)
     {
         i2c_lcd1602_set_cursor(p_lcd_info, true);
         i2c_lcd1602_move_cursor(p_lcd_info, 0, 0);
-        i2c_lcd1602_write_string(p_lcd_info, "Duration:");
+        i2c_lcd1602_write_string(p_lcd_info, "on");
+        i2c_lcd1602_move_cursor(p_lcd_info, 4, 0);
+        i2c_lcd1602_write_string(p_lcd_info, "off");
+        i2c_lcd1602_move_cursor(p_lcd_info, 8, 0);
+        i2c_lcd1602_write_string(p_lcd_info, "num");
     }
 
     return ret;
@@ -59,15 +65,15 @@ uint8_t lcd_set_on(uint16_t dur_val)
 {
     uint8_t ret = 1;
 
-    char buff[4];
-    snprintf(buff, 4, "%3d", dur_val);
+    char buff[6];
+    snprintf(buff, 6, "%5d", dur_val);
     
-    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 1, 1)) ? 0:1; 
+    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 0, 1)) ? 0:1; 
     
     if(!ret)
     {
         ret = (ESP_OK == i2c_lcd1602_write_string(p_lcd_info, buff)) ? 0:1;
-        lcd_user_pointer(p_user_pos);
+        lcd_user_pointer(p_user_pos, curr_prop);
     }
 
     return ret;
@@ -77,15 +83,15 @@ uint8_t lcd_set_off(uint16_t dur_val)
 {
     uint8_t ret = 1;
 
-    char buff[4];
-    snprintf(buff, 4, "%3d", dur_val);
+    char buff[6];
+    snprintf(buff, 6, "%5d", dur_val);
     
-    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 6, 1)) ? 0:1; 
+    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 4, 1)) ? 0:1; 
     
     if(!ret)
     {
         ret = (ESP_OK == i2c_lcd1602_write_string(p_lcd_info, buff)) ? 0:1;
-        lcd_user_pointer(p_user_pos);
+        lcd_user_pointer(p_user_pos, curr_prop);
     }
 
     return ret;
@@ -95,24 +101,48 @@ uint8_t lcd_set_num(uint8_t num_val)
 {
     uint8_t ret = 1;
 
-    char buff[3];
-    snprintf(buff, 3, "%2d", num_val);
+    char buff[4];
+    snprintf(buff, 4, "%3d", num_val);
     
-    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 11, 1)) ? 0:1; 
+    ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 8, 1)) ? 0:1; 
     
     if(!ret)
     {
         ret = (ESP_OK == i2c_lcd1602_write_string(p_lcd_info, buff)) ? 0:1;
-        lcd_user_pointer(p_user_pos);
+        lcd_user_pointer(p_user_pos, curr_prop);
     }
 
     return ret;
 }
 
-uint8_t lcd_user_pointer(uint8_t *p_pos)
+uint8_t lcd_user_pointer(uint8_t *p_pos, interface_property prop)
 {
-    memcpy(p_user_pos, p_pos, 2);
-    return i2c_lcd1602_move_cursor(p_lcd_info, p_pos[0], p_pos[1]);
+    uint8_t pos[2] = {0,1};
+
+    switch (prop)
+    {
+        case ON_PROP:
+            pos[0] = 0 + p_pos[0];
+            break;
+        
+        case OFF_PROP:
+            pos[0] = 4 + p_pos[0];
+
+            break;
+
+        case NUM_PROP:
+            pos[0] = 8 + p_pos[0];
+            break;
+
+        default:
+            break;
+    }
+
+    printf("column: %d row: %d\n", pos[0], pos[1]);
+    p_user_pos[0] = p_pos[0];
+    p_user_pos[1] = p_pos[1];
+
+    return i2c_lcd1602_move_cursor(p_lcd_info, pos[0], pos[1]);
 }
 
 static void i2c_master_init(void)
