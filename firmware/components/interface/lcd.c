@@ -66,7 +66,7 @@ uint8_t lcd_set_on(uint16_t dur_val)
     uint8_t ret = 1;
 
     char buff[6];
-    snprintf(buff, 6, "%5d", dur_val);
+    snprintf(buff, 6, "%3d", dur_val);
     
     ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 0, 1)) ? 0:1; 
     
@@ -84,7 +84,7 @@ uint8_t lcd_set_off(uint16_t dur_val)
     uint8_t ret = 1;
 
     char buff[6];
-    snprintf(buff, 6, "%5d", dur_val);
+    snprintf(buff, 6, "%3d", dur_val);
     
     ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 4, 1)) ? 0:1; 
     
@@ -102,7 +102,7 @@ uint8_t lcd_set_num(uint8_t num_val)
     uint8_t ret = 1;
 
     char buff[4];
-    snprintf(buff, 4, "%3d", num_val);
+    snprintf(buff, 4, "%2d", num_val);
     
     ret = (ESP_OK == i2c_lcd1602_move_cursor(p_lcd_info, 8, 1)) ? 0:1; 
     
@@ -138,7 +138,7 @@ uint8_t lcd_user_pointer(uint8_t *p_pos, interface_property prop)
             break;
     }
 
-    printf("column: %d row: %d\n", pos[0], pos[1]);
+    // printf("column: %d row: %d\n", pos[0], pos[1]);
     p_user_pos[0] = p_pos[0];
     p_user_pos[1] = p_pos[1];
 

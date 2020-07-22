@@ -17,9 +17,9 @@ static const uint16_t click_debounce = 70;
 static const uint16_t long_period = 600;
 static const uint16_t rot_debounce = 30;
 
-static uint16_t on_time = 50;
-static uint16_t off_time = 80;
-static uint8_t pulse_num = 4;
+static int16_t on_time = 50;
+static int16_t off_time = 80;
+static int8_t pulse_num = 4;
 extern interface_property curr_prop = ON_PROP;
 
 /**
@@ -89,8 +89,10 @@ static void interface_task(void *arg)
 {
     encoder_event_t encod_val;
     uint8_t digit_pos = 0;
-    uint8_t cursor_pos[] = {3, 1};
+    uint8_t cursor_pos[] = {2, 1};
 
+    // lcd_user_pointer(cursor_pos, curr_prop);
+    
     lcd_set_on(on_time);
     lcd_set_off(off_time);
     lcd_set_num(pulse_num);
@@ -110,28 +112,50 @@ static void interface_task(void *arg)
                 printf("Long\n");
                 curr_prop = (curr_prop + 1) % 3;
                 digit_pos = 0;
+                
+                if (curr_prop == NUM_PROP)
+                {
+                    cursor_pos[0] = 1 - digit_pos;
+                }
+                else
+                {
+                    cursor_pos[0] = 2 - digit_pos;
+                }
+
+                lcd_user_pointer(cursor_pos, curr_prop);
+                break;
 
             case SHORT:
                 printf("Short\n");
-                digit_pos = (digit_pos+1)%3;
-                cursor_pos[0] = digit_pos;
-                printf("Digit: %d\n", digit_pos);
+
+                if (curr_prop == NUM_PROP)
+                {
+                    digit_pos = (digit_pos+1)%2;
+                    cursor_pos[0] = 1 - digit_pos;
+                    printf("Digit: %d\n", digit_pos);
+                }
+                else
+                {
+                    digit_pos = (digit_pos+1)%3;
+                    cursor_pos[0] = 2 - digit_pos;
+                    printf("Digit: %d\n", digit_pos);
+                }
+
                 lcd_user_pointer(cursor_pos, curr_prop);
                 break;
 
             case CCW:
-                printf("-\n");
                 switch (curr_prop)
                 {
-                    case ON_PROP:
+                    case ON_PROP:            
                         on_time = on_time - pow(10, digit_pos);
                         break;
                     
-                    case OFF_PROP:
+                    case OFF_PROP:            
                         off_time = off_time - pow(10, digit_pos);
                         break;
 
-                    case NUM_PROP:
+                    case NUM_PROP:            
                         pulse_num = pulse_num - pow(10, digit_pos);
                         break;
 
@@ -140,19 +164,18 @@ static void interface_task(void *arg)
                 }
                 break;
 
-            case CW:
-                printf("+\n");
+            case CW:    
                 switch (curr_prop)
                 {
-                    case ON_PROP:
+                    case ON_PROP:            
                         on_time = on_time + pow(10, digit_pos);
                         break;
                     
-                    case OFF_PROP:
+                    case OFF_PROP:            
                         off_time = off_time + pow(10, digit_pos);
                         break;
 
-                    case NUM_PROP:
+                    case NUM_PROP:            
                         pulse_num = pulse_num + pow(10, digit_pos);
                         break;
 
@@ -164,22 +187,25 @@ static void interface_task(void *arg)
             default:
                 break;
             }
-            
-            // Value can't be smaller than 0;
-            if (duration < 0)
-            {
-                duration = 0;
-            }
 
-            // Value can't be larger than 5000 ms.
-            if (duration > 500)
-            {
-                duration = 500;
-            }
+            printf("on time: %d\n", on_time);
+            printf("off time: %d\n", off_time);
+            printf("pulse: %d\n", pulse_num);
 
-            // lcd_set_on(on_time);
-            // lcd_set_off(off_time);
-            // lcd_set_num(pulse_num);
+            // Values check
+            if(on_time > 999) on_time = 999;
+            if(off_time > 999) off_time = 999;
+            if(pulse_num > 99) pulse_num = 99;
+
+            if(on_time < 0) on_time = 0;
+            if(off_time < 0) off_time = 0;
+            if(pulse_num < 0) pulse_num = 0;
+
+            lcd_set_on(on_time);
+            lcd_set_off(off_time);
+            lcd_set_num(pulse_num);
+
+            lcd_user_pointer(cursor_pos, curr_prop);
 
             vTaskDelay(50/portTICK_PERIOD_MS);
             gpio_intr_enable(ENC_CLK);
