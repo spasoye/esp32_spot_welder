@@ -85,6 +85,15 @@ uint8_t interface_init(void)
     return ret;
 }
 
+void interface_get_val(uint16_t *p_on_time,uint16_t *p_off_time, uint16_t *p_pulses)
+{
+    *p_on_time = on_time;
+    *p_off_time = off_time;
+    *p_pulses = pulse_num;
+
+    return;
+}
+
 static void interface_task(void *arg)
 {
     encoder_event_t encod_val;
