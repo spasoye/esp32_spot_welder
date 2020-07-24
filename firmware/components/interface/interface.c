@@ -15,7 +15,6 @@ static QueueHandle_t p_encoder_queue = NULL;
 static int16_t duration = 100;
 static const uint16_t click_debounce = 70;
 static const uint16_t long_period = 600;
-static const uint16_t rot_debounce = 30;
 
 static int16_t on_time = 50;
 static int16_t off_time = 80;
@@ -52,14 +51,14 @@ uint8_t interface_init(void)
     uint8_t ret = 1;
 
     // Getting better results when level triggering
-    io_conf.intr_type = GPIO_PIN_INTR_NEGEDGE;
+    io_conf.intr_type = GPIO_PIN_INTR_ANYEDGE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<ENC_CLK);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
     gpio_config(&io_conf);
 
-    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
+    io_conf.intr_type = GPIO_PIN_INTR_ANYEDGE;
     io_conf.pin_bit_mask = (1ULL<<ENC_DT);
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
@@ -76,6 +75,7 @@ uint8_t interface_init(void)
     gpio_install_isr_service(0);
 
     gpio_isr_handler_add(ENC_CLK, encoder_isr_handler, (void*)ENC_CLK);
+    gpio_isr_handler_add(ENC_DT, encoder_isr_handler, (void*)ENC_DT);
     gpio_isr_handler_add(ENC_SW, click_isr_handler, (void*)ENC_SW);
 
     p_encoder_queue = xQueueCreate(1, sizeof(encoder_event_t));
@@ -112,9 +112,6 @@ static void interface_task(void *arg)
     {
         if (xQueueReceive(p_encoder_queue, &encod_val, portMAX_DELAY))
         {
-            // Disable interrupts until the handling is done.
-            gpio_intr_disable(ENC_CLK);
-
             switch (encod_val)
             {
             case LONG:
@@ -197,10 +194,6 @@ static void interface_task(void *arg)
                 break;
             }
 
-            printf("on time: %d\n", on_time);
-            printf("off time: %d\n", off_time);
-            printf("pulse: %d\n", pulse_num);
-
             // Values check
             if(on_time > 999) on_time = 999;
             if(off_time > 999) off_time = 999;
@@ -215,9 +208,6 @@ static void interface_task(void *arg)
             lcd_set_num(pulse_num);
 
             lcd_user_pointer(cursor_pos, curr_prop);
-
-            vTaskDelay(50/portTICK_PERIOD_MS);
-            gpio_intr_enable(ENC_CLK);
         }
     }
 }
@@ -229,28 +219,32 @@ uint16_t interface_get_duration(void)
 
 static void IRAM_ATTR encoder_isr_handler(void *arg)
 {
-    static uint32_t last_ms = 0;
-    uint32_t cur_ms = xTaskGetTickCountFromISR();
+    static uint16_t store = 0;
+    static uint8_t prevNextCode = 0;
+    static int8_t rot_enc_table[] = {0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0};
+
     encoder_event_t val;
 
-    if (rot_debounce < ((cur_ms - last_ms) * portTICK_PERIOD_MS))
-    {
-        uint8_t a = gpio_get_level(ENC_CLK);
-        uint8_t b = gpio_get_level(ENC_DT);
+    prevNextCode <<= 2;
+
+    if (!gpio_get_level(ENC_DT)) prevNextCode |= 0x02;
+    if (!gpio_get_level(ENC_CLK)) prevNextCode |= 0x01;
+    prevNextCode &= 0x0f;
+
+    if  (rot_enc_table[prevNextCode] ) {
+        store <<= 4;
+        store |= prevNextCode;
         
-        if (a == b)
-        {
-            val = CCW;
-        }
-        else
+        if ((store&0xff)==0x2b) 
         {
             val = CW;
+            xQueueSendFromISR(p_encoder_queue, &val, NULL);
         }
-        
-        xQueueSendFromISR(p_encoder_queue, &val, NULL);
+        if ((store&0xff)==0x17){
+            val = CCW;
+            xQueueSendFromISR(p_encoder_queue, &val, NULL);
+        }
     }
-
-    last_ms = cur_ms;
 }
 
 static void IRAM_ATTR click_isr_handler(void *arg)
