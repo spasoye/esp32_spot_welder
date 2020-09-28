@@ -48,12 +48,4 @@ uint8_t lcd_set_num(uint8_t num_val);
  */
 uint8_t lcd_user_pointer(uint8_t *p_pos, interface_property prop);
 
-/**
- * @brief  Prints ! in top right corner.
- * @note   
- * @param  lvl: Level of warning.
- * @retval None
- */
-void lcd_set_warning(uint8_t lvl);
-
 #endif

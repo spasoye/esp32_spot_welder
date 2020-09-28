@@ -160,19 +160,3 @@ static void i2c_master_init(void)
                        I2C_MASTER_RX_BUF_LEN,
                        I2C_MASTER_TX_BUF_LEN, 0);
 }
-
-void lcd_set_warning(uint8_t lvl)
-{
-    printf("Warning: %d\n", lvl);
-    if (lvl >= 3) lvl = 3;
-
-    i2c_lcd1602_move_cursor(p_lcd_info, 13, 0);
-    i2c_lcd1602_write_string(p_lcd_info, "   ");
-
-    i2c_lcd1602_move_cursor(p_lcd_info, 13, 0);
-    
-    for (uint8_t cnt = 0; cnt < lvl; cnt++)
-    {
-        i2c_lcd1602_write_char(p_lcd_info, '!');
-    }
-}

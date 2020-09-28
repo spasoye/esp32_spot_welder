@@ -30,13 +30,6 @@ interface_property curr_prop;
  */
 uint8_t interface_init(void);
 
-/**
- * @brief  Return duration value.
- * @note   
- * @retval Duration value.
- */
-uint16_t interface_get_duration(void);
-
 void interface_get_val(uint16_t *p_on_time,uint16_t *p_off_time, uint16_t *p_pulses);
 
 

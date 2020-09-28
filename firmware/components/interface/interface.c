@@ -212,11 +212,6 @@ static void interface_task(void *arg)
     }
 }
 
-uint16_t interface_get_duration(void)
-{
-    return duration;
-}
-
 static void IRAM_ATTR encoder_isr_handler(void *arg)
 {
     static uint16_t store = 0;
