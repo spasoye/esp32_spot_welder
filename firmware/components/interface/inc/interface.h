@@ -30,6 +30,14 @@ interface_property curr_prop;
  */
 uint8_t interface_init(void);
 
+/**
+ * @brief  Gets configured values.
+ * @note   
+ * @param  *p_on_time: variable where pulse ON time will be stored. 
+ * @param  *p_off_time: variable where pulse OFF time will be stored.
+ * @param  *p_pulses: variable where number of pulses will be stored.
+ * @retval None
+ */
 void interface_get_val(uint16_t *p_on_time,uint16_t *p_off_time, uint16_t *p_pulses);
 
 
