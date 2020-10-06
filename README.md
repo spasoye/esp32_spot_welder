@@ -8,6 +8,8 @@ Solid state relay is then switched on and off
 
 User interface is implemented using rotary encoder and [16x2 LCD display](https://github.com/DavidAntliff/esp32-i2c-lcd1602).
 
+<img src="https://github.com/spasoye/esp32_spot_welder/blob/master/MOTwelder_v0_2_0.jpg" width="800">
+
 ## Build and flash
 ```bash
 git clone git@github.com:spasoye/esp32_spot_welder.git
