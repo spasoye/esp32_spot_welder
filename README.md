@@ -1,6 +1,11 @@
 # ESP spot welder control
 
-Firmware for spot welder relay controller based on ESP32 dev kit.
+MOT spot welder controller based on ESP32 microcontroller.
+
+Basically it is configurable pulse generator. 
+User can configure pulse's ON and OFF time and number of pulses that will be generated when the switch is pressed.
+
+User interface is implemented using rotary encoder and [16x2 LCD display](https://github.com/DavidAntliff/esp32-i2c-lcd1602).
 
 ## Build and flash
 ```bash
