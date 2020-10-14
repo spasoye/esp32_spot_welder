@@ -1,7 +1,7 @@
 # ESP spot welder control
 
 MOT spot welder controller based on ESP32 microcontroller.
-
+ 
 Basically it is configurable pulse generator. 
 User can configure pulse's ON and OFF time and number of pulses that will be generated when the switch is pressed.
 Solid state relay is then switched on and off
